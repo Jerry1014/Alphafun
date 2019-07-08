@@ -1,3 +1,5 @@
+import random
+
 from graphics import *
 import numpy as np
 
@@ -6,7 +8,11 @@ GRID_WIDTH = 40
 SIZE_OF_CHESSMAN = 16
 COLUMN = 15
 ROW = 15
-SIGN_OF_WHITE = 100
+
+# 棋型的评估分数
+shape_score = {
+    ()
+}
 
 white_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 black_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
@@ -17,7 +23,12 @@ def ai():
     """使用极大极小指下棋
     :return:tuple ai选择的下棋位置
     """
-    return 0, 0
+    return random.randint(0, ROW-1), random.randint(0, COLUMN-1)
+
+
+def chessboard_evaluation():
+    """对当前局势进行评估，并给出分数"""
+    pass
 
 
 def check_win(check_situation):
@@ -56,7 +67,7 @@ def check_win(check_situation):
 
 
 # 棋盘初始化
-win = GraphWin("Battle with AlphaFun", GRID_WIDTH * (COLUMN-1), GRID_WIDTH * (ROW-1))
+win = GraphWin("Battle with AlphaFun", GRID_WIDTH * (COLUMN - 1), GRID_WIDTH * (ROW - 1))
 win.setBackground("yellow")
 
 i1 = 0
@@ -83,6 +94,12 @@ while True:
     piece.setFill('black')
     piece.draw(win)
 
+    if check_win(black_situation):
+        Text(Point(100, 120), "黑棋胜利").draw(win)
+        print('黑棋胜利')
+        win.getMouse()
+        break
+
     # AI下棋
     ai_pos = ai()
     if all_situation[ai_pos[0]][ai_pos[1]] != 0:
@@ -90,10 +107,16 @@ while True:
         print('AI投降')
         win.getMouse()
         break
-    all_situation[ai_pos[0]][ai_pos[1]] = SIGN_OF_WHITE
-    white_situation[ai_pos[0]][ai_pos[1]] = SIGN_OF_WHITE
+    all_situation[ai_pos[0]][ai_pos[1]] = -1
+    white_situation[ai_pos[0]][ai_pos[1]] = 1
     piece = Circle(Point(GRID_WIDTH * ai_pos[0], GRID_WIDTH * ai_pos[1]), SIZE_OF_CHESSMAN)
     piece.setFill('white')
     piece.draw(win)
+
+    if check_win(black_situation):
+        Text(Point(100, 120), "白棋胜利").draw(win)
+        print('白棋胜利')
+        win.getMouse()
+        break
 
 win.close()
