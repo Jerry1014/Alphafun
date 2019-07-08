@@ -89,7 +89,7 @@ while True:
         Text(Point(100, 120), "AI投降").draw(win)
         print('AI投降')
         win.getMouse()
-    #     break
+        break
     all_situation[ai_pos[0]][ai_pos[1]] = SIGN_OF_WHITE
     white_situation[ai_pos[0]][ai_pos[1]] = SIGN_OF_WHITE
     piece = Circle(Point(GRID_WIDTH * ai_pos[0], GRID_WIDTH * ai_pos[1]), SIZE_OF_CHESSMAN)
