@@ -1,6 +1,4 @@
 from graphics import *
-from math import *
-import numpy as np
 
 GRID_WIDTH = 40
 
@@ -303,13 +301,14 @@ def main():
     win.close()
 
 
-def battle(pos):
-    if pos == (7, 7):
-        for i in range(COLUMN + 1):
-            for j in range(ROW + 1):
-                list_all.append((i, j))
+def battle_gobang_init():
+    for i in range(COLUMN + 1):
+        for j in range(ROW + 1):
+            list_all.append((i, j))
 
-    """此处的第一个向量为x坐标，第二个为y坐标，非行列"""
+
+def battle_gobang(pos):
+    """此处的第一个向量为x坐标，第二个为y坐标，非行列 在玩乐前必须初始化"""
     list2.append(pos)
     list3.append(pos)
     ai_pos = ai()

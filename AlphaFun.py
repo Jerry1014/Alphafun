@@ -1,7 +1,8 @@
 from random import random
 
-from graphics import *
 import numpy as np
+
+from graphics import *
 
 # 行列宽度 棋子大小 行列数 白棋占位标志数
 GRID_WIDTH = 40
@@ -15,7 +16,7 @@ black_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 all_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 
 # num代表连起来的个数，（活，死）
-score = {2: (10, 5), 3: (50, 30), 4: (90, 50), 5: (100, 100)}
+score = {2: (50, 5), 3: (80, 30), 4: (90, 50), 5: (100, 100)}
 
 # 限定搜索范围，加快搜索速度
 range_x_min = COLUMN // 2
@@ -262,63 +263,33 @@ def main():
     win.close()
 
 
-if __name__ == '__main__':
-    # main()
-
-    from gobang_AI import battle
-
-    # 棋盘初始化
-    win = GraphWin("Battle with AlphaFun", GRID_WIDTH * (COLUMN - 1), GRID_WIDTH * (ROW - 1))
-    win.setBackground("yellow")
-
-    i1 = 0
-    while i1 < GRID_WIDTH * (COLUMN - 1):
-        Line(Point(i1, 0), Point(i1, GRID_WIDTH * COLUMN)).draw(win)
-        i1 = i1 + GRID_WIDTH
-    i2 = 0
-    while i2 < GRID_WIDTH * (ROW - 1):
-        Line(Point(0, i2), Point(GRID_WIDTH * ROW, i2)).draw(win)
-        i2 = i2 + GRID_WIDTH
-
+def battle_fun_init():
     all_situation[7][7] = -1
     white_situation[7][7] = 1
-    pos = (7, 7)
-    piece = Circle(Point(GRID_WIDTH * pos[1], GRID_WIDTH * pos[0]), SIZE_OF_CHESSMAN)
-    piece.setFill('black')
-    piece.draw(win)
-    while True:
-        if count_score(5, black_situation) >= 100:
-            Text(Point(100, 120), "黑棋胜利").draw(win)
-            print('黑棋胜利')
-            win.getMouse()
-            break
+    return 7, 7
 
-        pos2 = battle((pos[1],pos[0]))
-        all_situation[pos2[1]][pos2[0]] = 1
-        black_situation[pos2[1]][pos2[0]] = 1
-        piece = Circle(Point(GRID_WIDTH * pos2[0], GRID_WIDTH * pos2[1]), SIZE_OF_CHESSMAN)
-        piece.setFill('white')
-        piece.draw(win)
 
-        if count_score(5, white_situation) >= 100:
-            Text(Point(100, 120), "白棋胜利").draw(win)
-            print('白棋胜利')
-            win.getMouse()
-            break
+def battle_fun(pos2):
+    global range_y_max, range_y_min, range_x_min, range_x_max
+    all_situation[pos2[1]][pos2[0]] = 1
+    black_situation[pos2[1]][pos2[0]] = 1
 
-        # 修改搜索范围
-        if pos2[0] - 2 < range_x_min:
-            range_x_min = pos2[0] - 2 if pos2[0] - 2 > 0 else 0
-        if pos2[0] + 2 > range_x_max:
-            range_x_max = pos2[0] + 2 if pos2[0] + 2 < ROW else ROW
-        if pos2[1] - 2 < range_y_min:
-            range_y_min = pos2[1] - 2 if pos2[1] - 2 > 0 else 0
-        if pos2[1] + 2 > range_y_max:
-            range_y_max = pos2[1] + 2 if pos2[1] + 2 < COLUMN else COLUMN
+    # 修改搜索范围
+    if pos2[0] - 2 < range_x_min:
+        range_x_min = pos2[0] - 2 if pos2[0] - 2 > 0 else 0
+    if pos2[0] + 2 > range_x_max:
+        range_x_max = pos2[0] + 2 if pos2[0] + 2 < ROW else ROW
+    if pos2[1] - 2 < range_y_min:
+        range_y_min = pos2[1] - 2 if pos2[1] - 2 > 0 else 0
+    if pos2[1] + 2 > range_y_max:
+        range_y_max = pos2[1] + 2 if pos2[1] + 2 < COLUMN else COLUMN
 
-        pos = ai()
-        all_situation[pos[0]][pos[1]] = -1
-        white_situation[pos[0]][pos[1]] = 1
-        piece = Circle(Point(GRID_WIDTH * pos[1], GRID_WIDTH * pos[0]), SIZE_OF_CHESSMAN)
-        piece.setFill('black')
-        piece.draw(win)
+    pos = ai()
+    all_situation[pos[0]][pos[1]] = -1
+    white_situation[pos[0]][pos[1]] = 1
+
+    return pos
+
+
+if __name__ == '__main__':
+    main()
