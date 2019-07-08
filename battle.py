@@ -33,7 +33,17 @@ while True:
     piece.setFill('white')
     piece.draw(win)
 
-    pos1 = battle_fun(pos2)
+    pos1 = battle_fun((pos2[1],pos2[0]))
+    if type(pos1) == bool:
+        if pos1:
+            Text(Point(100, 120), "黑棋胜利").draw(win)
+            print('黑棋胜利')
+        else:
+            Text(Point(100, 120), "白棋胜利").draw(win)
+            print('白棋胜利')
+        win.getMouse()
+        break
+
     piece = Circle(Point(GRID_WIDTH * pos1[1], GRID_WIDTH * pos1[0]), SIZE_OF_CHESSMAN)
     piece.setFill('black')
     piece.draw(win)

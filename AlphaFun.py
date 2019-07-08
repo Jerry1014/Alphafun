@@ -1,4 +1,4 @@
-from random import random
+from random import randint
 
 import numpy as np
 
@@ -10,13 +10,14 @@ SIZE_OF_CHESSMAN = 16
 COLUMN = 15
 ROW = 15
 DEPTH = 1  # 搜索深度，每一"层"包括两层（极大极小）
+STRATEGY = 5  # 值越大，越倾向于防守
 
 white_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 black_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 all_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 
 # num代表连起来的个数，（活，死）
-score = {2: (50, 5), 3: (80, 30), 4: (90, 50), 5: (100, 100)}
+score = {2: (100, 50), 3: (200, 50), 4: (9000, 800), 5: (1000000, 1000000)}
 
 # 限定搜索范围，加快搜索速度
 range_x_min = COLUMN // 2
@@ -55,10 +56,10 @@ def each_it(deep):
                             if deep < DEPTH:
                                 tem = each_it(deep + 1)
                             else:
-                                tem = count_score(2, white_situation) + \
-                                      count_score(3, white_situation) + count_score(4, white_situation) - \
-                                      count_score(2, black_situation) - \
-                                      count_score(3, black_situation) + count_score(4, black_situation) + random()
+                                tem = count_score(2, white_situation) + count_score(3, white_situation) + \
+                                      count_score(4, white_situation) - \
+                                      STRATEGY * (count_score(2, black_situation) - count_score(3, black_situation) +
+                                                  count_score(4, black_situation)) + randint(-10, 10)
                             if tem < max_point:
                                 # 减枝
                                 break_sign = True
@@ -274,7 +275,11 @@ def battle_fun(pos2):
     all_situation[pos2[1]][pos2[0]] = 1
     black_situation[pos2[1]][pos2[0]] = 1
 
+    if count_score(5, black_situation) >= 100:
+        return False
+
     # 修改搜索范围
+    pos2
     if pos2[0] - 2 < range_x_min:
         range_x_min = pos2[0] - 2 if pos2[0] - 2 > 0 else 0
     if pos2[0] + 2 > range_x_max:
@@ -287,6 +292,9 @@ def battle_fun(pos2):
     pos = ai()
     all_situation[pos[0]][pos[1]] = -1
     white_situation[pos[0]][pos[1]] = 1
+
+    if count_score(5, black_situation) >= 100:
+        return True
 
     return pos
 
