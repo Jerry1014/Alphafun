@@ -22,19 +22,22 @@ range_y_max = ROW // 2
 
 
 def ai():
-    """使用极大极小指下棋
-    :return:tuple ai选择的下棋位置
-    """
-    return each_it(1)[1]
+    return random.randint(0, ROW - 1), random.randint(0, COLUMN - 1)
+    # return each_it(1)[1]
 
 
 def each_it(deep):
+    """使用极大极小指下棋
+    :param deep:当前迭代深度
+    :return:tuple 最大值 对应的下棋位置
+    """
     max_point = -sys.maxsize
     pos = (0, 0)
     for j in range(range_x_min, range_x_max):
         for i in range(range_y_min, range_y_max):
             if all_situation[i][j] == 0:
                 all_situation[i][j] = -1
+                white_situation[i][j] = 1
                 # ai试探下一步
 
                 min_point = sys.maxsize
@@ -44,6 +47,7 @@ def each_it(deep):
                         # 模拟用户下一步
                         if all_situation[i][j] == 0:
                             all_situation[i][j] = 1
+                            black_situation[i][j] = 1
                             # 若探索深度未到，则递归
                             if deep < DEPTH:
                                 tem = each_it(deep + 1)
@@ -56,6 +60,7 @@ def each_it(deep):
                             elif tem < min_point:
                                 min_point = tem
                             all_situation[i][j] = 0
+                            black_situation[i][j] = 0
 
                     if break_sign:
                         break
@@ -63,47 +68,125 @@ def each_it(deep):
                     max_point = min_point
                     pos = (i, j)
                 all_situation[i][j] = 0
+                white_situation[i][j] = 0
     return max_point, pos
 
 
 def get_score():
     """对当前局势进行评估，并给出分数"""
-    return 1
 
 
-def check_win(check_situation):
-    """检查棋局是否已经结束"""
-    win_condition_1 = np.array([True, True, True, True, True])
-    win_condition_2 = win_condition_1.T
-    win_condition_3 = np.array(
-        [[False, True, True, True, True], [True, False, True, True, True], [True, True, False, True, True],
-         [True, True, True, False, True], [True, True, True, True, False]])
-    win_condition_4 = np.array(
-        [[True, True, True, True, False], [True, True, True, False, True], [True, True, False, True, True],
-         [True, False, True, True, True], [False, True, True, True, True]])
+# num代表连起来的个数，（活，死）
+score = {2: (10, 5), 3: (20, 10), 4: (90, 50), 5: (100, 100)}
 
-    for i in range(ROW - 5):
-        for j in range(COLUMN - 5):
-            if np.logical_and(check_situation[i, j:j + 5], win_condition_1).all():
-                return True
-            if np.logical_and(check_situation[i:i + 5, j], win_condition_2).all():
-                return True
-            tem = check_situation[i:i + 5, j:j + 5]
-            if np.logical_or(tem, win_condition_3).all():
-                return True
-            if np.logical_or(tem, win_condition_4).all():
-                return True
 
-    for i in range(ROW - 5, ROW):
-        for j in range(COLUMN - 5):
-            if np.logical_and(check_situation[i, j:j + 5], win_condition_1).all():
-                return True
+def count_score(num, check_situation):
+    if check_situation is black_situation:
+        color = 1
+    count = 0
+    condition1 = np.array([True for i in range(num)])
+    condition2 = condition1.T
+    condition3 = np.array([[True if j != i else False for j in range(num)] for i in range(num)])
+    condition4 = np.rot90(condition3, 1)
 
-    for i in range(ROW - 5):
-        for j in range(COLUMN - 5, COLUMN):
-            if np.logical_and(check_situation[i:i + 5, j], win_condition_2).all():
-                return True
-    return False
+    for i in range(ROW - num + 1):
+        for j in range(COLUMN - num + 1):
+            # 左右
+            if np.logical_and(check_situation[i, j:j + num], condition1).all():
+                # 当左右存在相同棋子时，跳过，避免重复计算
+                avoid_recalculate_left = all_situation[i][j - 1] != color if j > 0 else True
+                avoid_recalculate_right = all_situation[i][j + num] != color if j + num < COLUMN else True
+                if avoid_recalculate_left and avoid_recalculate_right:
+                    # 判断左右边界，是活棋还是死棋
+                    boundary = (all_situation[i][j - 1] == 1 if j > 0 else True,
+                                all_situation[i][j + num] == 1 if j + num < COLUMN else True)
+                    if sum(boundary) == 0:
+                        count += score[num][0]
+                    elif sum(boundary) == 1:
+                        count += score[num][1]
+                    elif num == 5:
+                        count += 100
+                        break
+
+            # 上下
+            if np.logical_and(check_situation[i:i + num, j], condition2).all():
+                avoid_recalculate_top = all_situation[i - 1][j] != color if i > 0 else True
+                avoid_recalculate_bottom = all_situation[i + num][j] != color if i + num < ROW else True
+                if avoid_recalculate_top and avoid_recalculate_bottom:
+                    boundary = (all_situation[i - 1][j] == 1 if i > 0 else True,
+                                all_situation[i + num][j] == 1 if i + num < ROW else True)
+                    if sum(boundary) == 0:
+                        count += score[num][0]
+                    elif sum(boundary) == 1:
+                        count += score[num][1]
+                    elif num == 5:
+                        count += 100
+                        break
+
+            tem = check_situation[i:i + num, j:j + num]
+            # \
+            if np.logical_or(tem, condition3).all():
+                avoid_recalculate_left_upper = all_situation[i - 1][j - 1] != color if i > 0 and j > 0 else True
+                avoid_recalculate_right_lower = all_situation[i + num][
+                                                    j + num] != color if i + num < ROW and j + num < COLUMN else True
+                if avoid_recalculate_left_upper and avoid_recalculate_right_lower:
+                    boundary = (all_situation[i - 1][j - 1] == 1 if i > 0 and j > 0 else True,
+                                all_situation[i + num][
+                                    j + num] == 1 if i + num < ROW and j + num < COLUMN else True)
+                    if sum(boundary) == 0:
+                        count += score[num][0]
+                    elif sum(boundary) == 1:
+                        count += score[num][1]
+            # /
+            if np.logical_or(tem, condition4).all():
+                avoid_recalculate_right_upper = all_situation[i - 1][
+                                                    j + num] != color if j + num < COLUMN and i > 0 else True
+                avoid_recalculate_left_lower = all_situation[i + num][
+                                                   j - 1] != color if j > 0 and i + num < ROW else True
+                if avoid_recalculate_right_upper and avoid_recalculate_left_lower:
+                    boundary = (all_situation[i - 1][j + num] == 1 if j + num < COLUMN and i > 0 else True,
+                                all_situation[i + num][j - 1] == 1 if j > 0 and i + num < ROW else True)
+                    if sum(boundary) == 0:
+                        count += score[num][0]
+                    elif sum(boundary) == 1:
+                        count += score[num][1]
+                    elif num == 5:
+                        count += 100
+                        break
+
+    for i in range(ROW - num + 1, ROW):
+        for j in range(COLUMN - num + 1):
+            if np.logical_and(check_situation[i, j:j + num], condition1).all():
+                avoid_recalculate_left = all_situation[i][j - 1] != color if j > 0 else True
+                avoid_recalculate_right = all_situation[i][j + num] != color if j + num < COLUMN else True
+                if avoid_recalculate_left and avoid_recalculate_right:
+                    boundary = (all_situation[i][j - 1] == 1 if j > 0 else True,
+                                all_situation[i][j + num] == 1 if j + num < COLUMN else True)
+                    if sum(boundary) == 0:
+                        count += score[num][0]
+                    elif sum(boundary) == 1:
+                        count += score[num][1]
+                    elif num == 5:
+                        count += 100
+                        break
+
+    for i in range(ROW - num + 1):
+        for j in range(COLUMN - num + 1, COLUMN):
+            if np.logical_and(check_situation[i:i + num, j], condition2).all():
+                avoid_recalculate_top = all_situation[i - 1][j] != color if i > 0 else True
+                avoid_recalculate_bottom = all_situation[i + num][j] != color if i + num < ROW else True
+                if avoid_recalculate_top and avoid_recalculate_bottom:
+                    boundary = (all_situation[i - 1][j] == 1 if i > 0 else True,
+                                all_situation[i + num][j] == 1 if i + num < ROW else True)
+                    if sum(boundary) == 0:
+                        count += score[num][0]
+                    elif sum(boundary) == 1:
+                        count += score[num][1]
+                    elif num == 5:
+                        count += 100
+                        break
+
+    return count
 
 
 def main():
@@ -128,7 +211,7 @@ def main():
         player_pos = (round((player_mouse_pos.getY()) / GRID_WIDTH), round((player_mouse_pos.getX()) / GRID_WIDTH))
         while all_situation[player_pos[0]][player_pos[1]] != 0:
             player_mouse_pos = win.getMouse()
-            player_pos = (round((player_mouse_pos.getY()) / GRID_WIDTH, round((player_mouse_pos.getX()) / GRID_WIDTH)))
+            player_pos = (round((player_mouse_pos.getY()) / GRID_WIDTH), round((player_mouse_pos.getX()) / GRID_WIDTH))
         all_situation[player_pos[0]][player_pos[1]] = 1
         black_situation[player_pos[0]][player_pos[1]] = 1
         piece = Circle(Point(GRID_WIDTH * player_pos[1], GRID_WIDTH * player_pos[0]), SIZE_OF_CHESSMAN)
@@ -136,7 +219,8 @@ def main():
         piece.draw(win)
 
         # 检查游戏是否结束
-        if check_win(black_situation):
+        print(count_score(2, black_situation) + count_score(3, black_situation) + count_score(4, black_situation))
+        if count_score(5, black_situation) >= 100:
             Text(Point(100, 120), "黑棋胜利").draw(win)
             print('黑棋胜利')
             win.getMouse()
@@ -161,12 +245,12 @@ def main():
             break
         all_situation[ai_pos[0]][ai_pos[1]] = -1
         white_situation[ai_pos[0]][ai_pos[1]] = 1
-        piece = Circle(Point(GRID_WIDTH * ai_pos[0], GRID_WIDTH * ai_pos[1]), SIZE_OF_CHESSMAN)
+        piece = Circle(Point(GRID_WIDTH * ai_pos[1], GRID_WIDTH * ai_pos[0]), SIZE_OF_CHESSMAN)
         piece.setFill('white')
         piece.draw(win)
 
         # 检查游戏是否结束
-        if check_win(black_situation):
+        if count_score(5, white_situation) >= 100:
             Text(Point(100, 120), "白棋胜利").draw(win)
             print('白棋胜利')
             win.getMouse()
