@@ -17,7 +17,6 @@ next_point = [0, 0]  # AI下一步最应该下的位置
 ratio = 1  # 进攻的系数   大于1 进攻型，  小于1 防守型
 DEPTH = 3  # 搜索深度   只能是单数。  如果是负数， 评估函数评估的的是自己多少步之后的自己得分的最大值，并不意味着是最好的棋， 评估函数的问题
 
-
 # 棋型的评估分数
 shape_score = [(50, (0, 1, 1, 0, 0)),
                (50, (0, 0, 1, 1, 0)),
@@ -37,9 +36,9 @@ shape_score = [(50, (0, 1, 1, 0, 0)),
 
 
 def ai():
-    global cut_count   # 统计剪枝次数
+    global cut_count  # 统计剪枝次数
     cut_count = 0
-    global search_count   # 统计搜索次数
+    global search_count  # 统计搜索次数
     search_count = 0
     negamax(True, DEPTH, -99999999, 99999999)
     print("本次共剪枝次数：" + str(cut_count))
@@ -54,7 +53,7 @@ def negamax(is_ai, depth, alpha, beta):
         return evaluation(is_ai)
 
     blank_list = list(set(list_all).difference(set(list3)))
-    order(blank_list)   # 搜索顺序排序  提高剪枝效率
+    order(blank_list)  # 搜索顺序排序  提高剪枝效率
     # 遍历每一个候选步
     for next_step in blank_list:
 
@@ -113,7 +112,7 @@ def has_neightnor(pt):
         for j in range(-1, 2):
             if i == 0 and j == 0:
                 continue
-            if (pt[0] + i, pt[1]+j) in list3:
+            if (pt[0] + i, pt[1] + j) in list3:
                 return True
     return False
 
@@ -151,7 +150,7 @@ def evaluation(is_ai):
         enemy_score += cal_score(m, n, 1, 1, my_list, enemy_list, score_all_arr_enemy)
         enemy_score += cal_score(m, n, -1, 1, my_list, enemy_list, score_all_arr_enemy)
 
-    total_score = my_score - enemy_score*ratio*0.1
+    total_score = my_score - enemy_score * ratio * 0.1
 
     return total_score
 
@@ -184,14 +183,15 @@ def cal_score(m, n, x_decrict, y_derice, enemy_list, my_list, score_all_arr):
 
         for (score, shape) in shape_score:
             if tmp_shap5 == shape or tmp_shap6 == shape:
-                if tmp_shap5 == (1,1,1,1,1):
+                if tmp_shap5 == (1, 1, 1, 1, 1):
                     print('wwwwwwwwwwwwwwwwwwwwwwwwwww')
                 if score > max_score_shape[0]:
-                    max_score_shape = (score, ((m + (0+offset) * x_decrict, n + (0+offset) * y_derice),
-                                               (m + (1+offset) * x_decrict, n + (1+offset) * y_derice),
-                                               (m + (2+offset) * x_decrict, n + (2+offset) * y_derice),
-                                               (m + (3+offset) * x_decrict, n + (3+offset) * y_derice),
-                                               (m + (4+offset) * x_decrict, n + (4+offset) * y_derice)), (x_decrict, y_derice))
+                    max_score_shape = (score, ((m + (0 + offset) * x_decrict, n + (0 + offset) * y_derice),
+                                               (m + (1 + offset) * x_decrict, n + (1 + offset) * y_derice),
+                                               (m + (2 + offset) * x_decrict, n + (2 + offset) * y_derice),
+                                               (m + (3 + offset) * x_decrict, n + (3 + offset) * y_derice),
+                                               (m + (4 + offset) * x_decrict, n + (4 + offset) * y_derice)),
+                                       (x_decrict, y_derice))
 
     # 计算两个形状相交， 如两个3活 相交， 得分增加 一个子的除外
     if max_score_shape[1] is not None:
@@ -214,13 +214,13 @@ def game_win(list):
                     m, n + 3) in list and (m, n + 4) in list:
                 return True
             elif m < ROW - 4 and (m, n) in list and (m + 1, n) in list and (m + 2, n) in list and (
-                        m + 3, n) in list and (m + 4, n) in list:
+                    m + 3, n) in list and (m + 4, n) in list:
                 return True
             elif m < ROW - 4 and n < ROW - 4 and (m, n) in list and (m + 1, n + 1) in list and (
-                        m + 2, n + 2) in list and (m + 3, n + 3) in list and (m + 4, n + 4) in list:
+                    m + 2, n + 2) in list and (m + 3, n + 3) in list and (m + 4, n + 4) in list:
                 return True
             elif m < ROW - 4 and n > 3 and (m, n) in list and (m + 1, n - 1) in list and (
-                        m + 2, n - 2) in list and (m + 3, n - 3) in list and (m + 4, n - 4) in list:
+                    m + 2, n - 2) in list and (m + 3, n - 3) in list and (m + 4, n - 4) in list:
                 return True
     return False
 
@@ -246,8 +246,8 @@ def gobangwin():
 def main():
     win = gobangwin()
 
-    for i in range(COLUMN+1):
-        for j in range(ROW+1):
+    for i in range(COLUMN + 1):
+        for j in range(ROW + 1):
             list_all.append((i, j))
 
     change = 0
@@ -303,4 +303,20 @@ def main():
     win.close()
 
 
-main()
+def battle(pos):
+    if pos == (7, 7):
+        for i in range(COLUMN + 1):
+            for j in range(ROW + 1):
+                list_all.append((i, j))
+
+    """此处的第一个向量为x坐标，第二个为y坐标，非行列"""
+    list2.append(pos)
+    list3.append(pos)
+    ai_pos = ai()
+    list1.append(ai_pos)
+    list3.append(ai_pos)
+    return ai_pos
+
+
+if __name__ == '__main__':
+    main()
