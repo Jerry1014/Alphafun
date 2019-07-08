@@ -83,6 +83,8 @@ score = {2: (10, 5), 3: (20, 10), 4: (90, 50), 5: (100, 100)}
 def count_score(num, check_situation):
     if check_situation is black_situation:
         color = 1
+    else:
+        color = -1
     count = 0
     condition1 = np.array([True for i in range(num)])
     condition2 = condition1.T
@@ -98,8 +100,8 @@ def count_score(num, check_situation):
                 avoid_recalculate_right = all_situation[i][j + num] != color if j + num < COLUMN else True
                 if avoid_recalculate_left and avoid_recalculate_right:
                     # 判断左右边界，是活棋还是死棋
-                    boundary = (all_situation[i][j - 1] == 1 if j > 0 else True,
-                                all_situation[i][j + num] == 1 if j + num < COLUMN else True)
+                    boundary = (all_situation[i][j - 1] != 0 if j > 0 else True,
+                                all_situation[i][j + num] != 0 if j + num < COLUMN else True)
                     if sum(boundary) == 0:
                         count += score[num][0]
                     elif sum(boundary) == 1:
@@ -113,8 +115,8 @@ def count_score(num, check_situation):
                 avoid_recalculate_top = all_situation[i - 1][j] != color if i > 0 else True
                 avoid_recalculate_bottom = all_situation[i + num][j] != color if i + num < ROW else True
                 if avoid_recalculate_top and avoid_recalculate_bottom:
-                    boundary = (all_situation[i - 1][j] == 1 if i > 0 else True,
-                                all_situation[i + num][j] == 1 if i + num < ROW else True)
+                    boundary = (all_situation[i - 1][j] != 0 if i > 0 else True,
+                                all_situation[i + num][j] != 0 if i + num < ROW else True)
                     if sum(boundary) == 0:
                         count += score[num][0]
                     elif sum(boundary) == 1:
@@ -130,9 +132,9 @@ def count_score(num, check_situation):
                 avoid_recalculate_right_lower = all_situation[i + num][
                                                     j + num] != color if i + num < ROW and j + num < COLUMN else True
                 if avoid_recalculate_left_upper and avoid_recalculate_right_lower:
-                    boundary = (all_situation[i - 1][j - 1] == 1 if i > 0 and j > 0 else True,
+                    boundary = (all_situation[i - 1][j - 1] != 0 if i > 0 and j > 0 else True,
                                 all_situation[i + num][
-                                    j + num] == 1 if i + num < ROW and j + num < COLUMN else True)
+                                    j + num] != 0 if i + num < ROW and j + num < COLUMN else True)
                     if sum(boundary) == 0:
                         count += score[num][0]
                     elif sum(boundary) == 1:
@@ -144,8 +146,8 @@ def count_score(num, check_situation):
                 avoid_recalculate_left_lower = all_situation[i + num][
                                                    j - 1] != color if j > 0 and i + num < ROW else True
                 if avoid_recalculate_right_upper and avoid_recalculate_left_lower:
-                    boundary = (all_situation[i - 1][j + num] == 1 if j + num < COLUMN and i > 0 else True,
-                                all_situation[i + num][j - 1] == 1 if j > 0 and i + num < ROW else True)
+                    boundary = (all_situation[i - 1][j + num] != 0 if j + num < COLUMN and i > 0 else True,
+                                all_situation[i + num][j - 1] != 0 if j > 0 and i + num < ROW else True)
                     if sum(boundary) == 0:
                         count += score[num][0]
                     elif sum(boundary) == 1:
@@ -160,8 +162,8 @@ def count_score(num, check_situation):
                 avoid_recalculate_left = all_situation[i][j - 1] != color if j > 0 else True
                 avoid_recalculate_right = all_situation[i][j + num] != color if j + num < COLUMN else True
                 if avoid_recalculate_left and avoid_recalculate_right:
-                    boundary = (all_situation[i][j - 1] == 1 if j > 0 else True,
-                                all_situation[i][j + num] == 1 if j + num < COLUMN else True)
+                    boundary = (all_situation[i][j - 1] != 0 if j > 0 else True,
+                                all_situation[i][j + num] != 0 if j + num < COLUMN else True)
                     if sum(boundary) == 0:
                         count += score[num][0]
                     elif sum(boundary) == 1:
@@ -176,8 +178,8 @@ def count_score(num, check_situation):
                 avoid_recalculate_top = all_situation[i - 1][j] != color if i > 0 else True
                 avoid_recalculate_bottom = all_situation[i + num][j] != color if i + num < ROW else True
                 if avoid_recalculate_top and avoid_recalculate_bottom:
-                    boundary = (all_situation[i - 1][j] == 1 if i > 0 else True,
-                                all_situation[i + num][j] == 1 if i + num < ROW else True)
+                    boundary = (all_situation[i - 1][j] != 0 if i > 0 else True,
+                                all_situation[i + num][j] != 0 if i + num < ROW else True)
                     if sum(boundary) == 0:
                         count += score[num][0]
                     elif sum(boundary) == 1:
@@ -219,12 +221,12 @@ def main():
         piece.draw(win)
 
         # 检查游戏是否结束
-        print(count_score(2, black_situation) + count_score(3, black_situation) + count_score(4, black_situation))
-        if count_score(5, black_situation) >= 100:
-            Text(Point(100, 120), "黑棋胜利").draw(win)
-            print('黑棋胜利')
-            win.getMouse()
-            break
+        print(count_score(2, black_situation))
+        # if count_score(5, black_situation) >= 100:
+        #     Text(Point(100, 120), "黑棋胜利").draw(win)
+        #     print('黑棋胜利')
+        #     win.getMouse()
+        #     break
 
         # 修改搜索范围
         if player_pos[0] - 2 < range_x_min:
@@ -249,12 +251,12 @@ def main():
         piece.setFill('white')
         piece.draw(win)
 
-        # 检查游戏是否结束
-        if count_score(5, white_situation) >= 100:
-            Text(Point(100, 120), "白棋胜利").draw(win)
-            print('白棋胜利')
-            win.getMouse()
-            break
+        # # 检查游戏是否结束
+        # if count_score(5, white_situation) >= 100:
+        #     Text(Point(100, 120), "白棋胜利").draw(win)
+        #     print('白棋胜利')
+        #     win.getMouse()
+        #     break
 
     win.close()
 
