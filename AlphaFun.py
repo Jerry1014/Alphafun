@@ -1,4 +1,4 @@
-import random
+from random import random
 
 from graphics import *
 import numpy as np
@@ -14,6 +14,9 @@ white_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 black_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 all_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 
+# num代表连起来的个数，（活，死）
+score = {2: (10, 5), 3: (50, 30), 4: (90, 50), 5: (100, 100)}
+
 # 限定搜索范围，加快搜索速度
 range_x_min = COLUMN // 2
 range_y_min = ROW // 2
@@ -22,8 +25,7 @@ range_y_max = ROW // 2
 
 
 def ai():
-    return random.randint(0, ROW - 1), random.randint(0, COLUMN - 1)
-    # return each_it(1)[1]
+    return each_it(1)[1]
 
 
 def each_it(deep):
@@ -33,8 +35,8 @@ def each_it(deep):
     """
     max_point = -sys.maxsize
     pos = (0, 0)
-    for j in range(range_x_min, range_x_max):
-        for i in range(range_y_min, range_y_max):
+    for i in range(range_x_min, range_x_max):
+        for j in range(range_y_min, range_y_max):
             if all_situation[i][j] == 0:
                 all_situation[i][j] = -1
                 white_situation[i][j] = 1
@@ -42,42 +44,41 @@ def each_it(deep):
 
                 min_point = sys.maxsize
                 break_sign = False
-                for j in range(range_x_min, range_x_max):
-                    for i in range(range_y_min, range_y_max):
+                for k in range(range_x_min, range_x_max):
+                    for l in range(range_y_min, range_y_max):
                         # 模拟用户下一步
-                        if all_situation[i][j] == 0:
-                            all_situation[i][j] = 1
-                            black_situation[i][j] = 1
+                        if all_situation[k][l] == 0:
+                            all_situation[k][l] = 1
+                            black_situation[k][l] = 1
                             # 若探索深度未到，则递归
                             if deep < DEPTH:
                                 tem = each_it(deep + 1)
                             else:
-                                tem = get_score()
+                                tem = count_score(2, white_situation) + \
+                                      count_score(3, white_situation) + count_score(4, white_situation) - \
+                                      count_score(2, black_situation) - \
+                                      count_score(3, black_situation) + count_score(4, black_situation) + random()
                             if tem < max_point:
                                 # 减枝
                                 break_sign = True
+                                all_situation[k][l] = 0
+                                black_situation[k][l] = 0
                                 break
                             elif tem < min_point:
                                 min_point = tem
-                            all_situation[i][j] = 0
-                            black_situation[i][j] = 0
+                            all_situation[k][l] = 0
+                            black_situation[k][l] = 0
 
                     if break_sign:
                         break
+
                 if not break_sign:
                     max_point = min_point
                     pos = (i, j)
                 all_situation[i][j] = 0
                 white_situation[i][j] = 0
+            print(max_point)
     return max_point, pos
-
-
-def get_score():
-    """对当前局势进行评估，并给出分数"""
-
-
-# num代表连起来的个数，（活，死）
-score = {2: (10, 5), 3: (20, 10), 4: (90, 50), 5: (100, 100)}
 
 
 def count_score(num, check_situation):
@@ -221,22 +222,21 @@ def main():
         piece.draw(win)
 
         # 检查游戏是否结束
-        print(count_score(2, black_situation))
-        # if count_score(5, black_situation) >= 100:
-        #     Text(Point(100, 120), "黑棋胜利").draw(win)
-        #     print('黑棋胜利')
-        #     win.getMouse()
-        #     break
+        if count_score(5, black_situation) >= 100:
+            Text(Point(100, 120), "黑棋胜利").draw(win)
+            print('黑棋胜利')
+            win.getMouse()
+            break
 
         # 修改搜索范围
         if player_pos[0] - 2 < range_x_min:
             range_x_min = player_pos[0] - 2 if player_pos[0] - 2 > 0 else 0
         if player_pos[0] + 2 > range_x_max:
-            range_x_max = player_pos[0] + 2 if player_pos[0] + 2 > COLUMN else COLUMN + 1
+            range_x_max = player_pos[0] + 2 if player_pos[0] + 2 < ROW else ROW
         if player_pos[1] - 2 < range_y_min:
             range_y_min = player_pos[1] - 2 if player_pos[1] - 2 > 0 else 0
         if player_pos[1] + 2 > range_y_max:
-            range_y_max = player_pos[1] + 2 if player_pos[1] + 2 > ROW else ROW + 1
+            range_y_max = player_pos[1] + 2 if player_pos[1] + 2 < COLUMN else COLUMN
 
         # AI下棋
         ai_pos = ai()
@@ -251,12 +251,12 @@ def main():
         piece.setFill('white')
         piece.draw(win)
 
-        # # 检查游戏是否结束
-        # if count_score(5, white_situation) >= 100:
-        #     Text(Point(100, 120), "白棋胜利").draw(win)
-        #     print('白棋胜利')
-        #     win.getMouse()
-        #     break
+        # 检查游戏是否结束
+        if count_score(5, white_situation) >= 100:
+            Text(Point(100, 120), "白棋胜利").draw(win)
+            print('白棋胜利')
+            win.getMouse()
+            break
 
     win.close()
 
