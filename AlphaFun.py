@@ -11,13 +11,14 @@ COLUMN = 16
 ROW = 16
 DEPTH = 1  # 搜索深度，每一"层"包括两层（极大极小）
 STRATEGY = 2  # 值越大，越倾向于防守
+WIN_SCORE = 1000000
 
 white_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 black_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 all_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 
 # num代表连起来的个数，（活，死）
-score = {2: (100, 50), 3: (200, 50), 4: (9000, 5000), 5: (1000000, 1000000)}
+score = {2: (100, 50), 3: (200, 50), 4: (9000, 5000), 5: (WIN_SCORE, WIN_SCORE)}
 
 # 限定搜索范围，加快搜索速度
 range_x_min = COLUMN // 2
@@ -38,6 +39,7 @@ def each_it(deep):
     max_point = -sys.maxsize
     pos = (0, 0)
     for i in range(range_x_min, range_x_max):
+        break_sign1 = False
         for j in range(range_y_min, range_y_max):
             if all_situation[i][j] == 0:
                 all_situation[i][j] = -1
@@ -45,6 +47,11 @@ def each_it(deep):
                 # ai试探下一步
                 ai_score = count_score(2, white_situation) + count_score(3, white_situation) + \
                            count_score(4, white_situation)
+                if count_score(5, white_situation) >= WIN_SCORE:
+                    pos = (i,j)
+                    max_point = sys.maxsize
+                    break_sign1 = True
+                    break
 
                 min_point = sys.maxsize
                 break_sign = False
@@ -82,6 +89,8 @@ def each_it(deep):
                 all_situation[i][j] = 0
                 white_situation[i][j] = 0
             print(max_point)
+        if break_sign1:
+            break
     return max_point, pos
 
 
@@ -227,7 +236,7 @@ def main():
         piece.draw(win)
 
         # 检查游戏是否结束
-        if count_score(5, black_situation) >= 100:
+        if count_score(5, black_situation) >= WIN_SCORE:
             Text(Point(100, 120), "黑棋胜利").draw(win)
             print('黑棋胜利')
             win.getMouse()
@@ -257,7 +266,7 @@ def main():
         piece.draw(win)
 
         # 检查游戏是否结束
-        if count_score(5, white_situation) >= 100:
+        if count_score(5, white_situation) >= WIN_SCORE:
             Text(Point(100, 120), "白棋胜利").draw(win)
             print('白棋胜利')
             win.getMouse()
@@ -278,7 +287,7 @@ def battle_fun(pos2):
     all_situation[pos2[0]][pos2[1]] = 1
     black_situation[pos2[0]][pos2[1]] = 1
 
-    if count_score(5, black_situation) >= 100:
+    if count_score(5, black_situation) >= WIN_SCORE:
         return False
 
     # 修改搜索范围
@@ -296,7 +305,7 @@ def battle_fun(pos2):
     all_situation[pos[0]][pos[1]] = -1
     white_situation[pos[0]][pos[1]] = 1
 
-    if count_score(5, black_situation) >= 100:
+    if count_score(5, black_situation) >= WIN_SCORE:
         return True
 
     return pos
