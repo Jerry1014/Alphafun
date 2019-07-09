@@ -7,17 +7,17 @@ from graphics import *
 # 行列宽度 棋子大小 行列数 白棋占位标志数
 GRID_WIDTH = 40
 SIZE_OF_CHESSMAN = 16
-COLUMN = 15
-ROW = 15
+COLUMN = 16
+ROW = 16
 DEPTH = 1  # 搜索深度，每一"层"包括两层（极大极小）
-STRATEGY = 5  # 值越大，越倾向于防守
+STRATEGY = 2  # 值越大，越倾向于防守
 
 white_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 black_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 all_situation = np.array([[0 for i in range(COLUMN)] for j in range(ROW)])
 
 # num代表连起来的个数，（活，死）
-score = {2: (100, 50), 3: (200, 50), 4: (9000, 800), 5: (1000000, 1000000)}
+score = {2: (100, 50), 3: (200, 50), 4: (9000, 5000), 5: (1000000, 1000000)}
 
 # 限定搜索范围，加快搜索速度
 range_x_min = COLUMN // 2
@@ -43,6 +43,8 @@ def each_it(deep):
                 all_situation[i][j] = -1
                 white_situation[i][j] = 1
                 # ai试探下一步
+                ai_score = count_score(2, white_situation) + count_score(3, white_situation) + \
+                           count_score(4, white_situation)
 
                 min_point = sys.maxsize
                 break_sign = False
@@ -56,15 +58,15 @@ def each_it(deep):
                             if deep < DEPTH:
                                 tem = each_it(deep + 1)
                             else:
-                                tem = count_score(2, white_situation) + count_score(3, white_situation) + \
-                                      count_score(4, white_situation) - \
-                                      STRATEGY * (count_score(2, black_situation) - count_score(3, black_situation) +
-                                                  count_score(4, black_situation)) + randint(-10, 10)
+                                tem = ai_score - STRATEGY * (count_score(2, black_situation)
+                                                             - count_score(3, black_situation)
+                                                             + count_score(4, black_situation)) + randint(-10, 10)
                             if tem < max_point:
                                 # 减枝
                                 break_sign = True
                                 all_situation[k][l] = 0
                                 black_situation[k][l] = 0
+                                min_point = -sys.maxsize
                                 break
                             elif tem < min_point:
                                 min_point = tem
@@ -74,7 +76,7 @@ def each_it(deep):
                     if break_sign:
                         break
 
-                if not break_sign:
+                if min_point > max_point:
                     max_point = min_point
                     pos = (i, j)
                 all_situation[i][j] = 0
@@ -265,15 +267,16 @@ def main():
 
 
 def battle_fun_init():
-    all_situation[7][7] = -1
-    white_situation[7][7] = 1
-    return 7, 7
+    tem = (randint(0, ROW - 1), randint(0, COLUMN - 1))
+    all_situation[tem[0]][tem[1]] = -1
+    white_situation[tem[0]][tem[1]] = 1
+    return tem
 
 
 def battle_fun(pos2):
     global range_y_max, range_y_min, range_x_min, range_x_max
-    all_situation[pos2[1]][pos2[0]] = 1
-    black_situation[pos2[1]][pos2[0]] = 1
+    all_situation[pos2[0]][pos2[1]] = 1
+    black_situation[pos2[0]][pos2[1]] = 1
 
     if count_score(5, black_situation) >= 100:
         return False
